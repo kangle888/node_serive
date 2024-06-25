@@ -18,6 +18,37 @@ class UserService {
     const values = await connection.execute(statement, [username]);
     return values;
   }
+
+  // 根据用户id获取用户信息
+  async getUserInfo(userId) {
+    console.log('userId--------------------:', userId);
+    const statement = `
+        SELECT 
+          user.id, 
+          user.name, 
+          user.createAt,
+          JSON_OBJECT('userId', user.id, 'username', user.name) AS USER,
+          JSON_ARRAYAGG(JSON_OBJECT('roleId', roles.id, 'roleName', roles.role_name)) AS roles
+        FROM 
+          USER
+        LEFT JOIN 
+          user_roles ON user.id = user_roles.user_id
+        LEFT JOIN 
+          roles ON user_roles.role_id = roles.id
+        WHERE 
+          user.id = ?
+        GROUP BY 
+          user.id;
+    `;
+    try {
+      const [data] = await connection.execute(statement, [userId]);
+      console.log('data:////////////', data);
+      return data;
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw new Error('Error retrieving user information');
+    }
+  }
 }
 
 export default new UserService();
