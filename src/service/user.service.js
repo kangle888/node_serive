@@ -94,6 +94,115 @@ class UserService {
       throw new Error('Error retrieving menu information');
     }
   }
+  // 获取用户列表 根据query参数 offset 和 size
+  async getUserList(offset, size) {
+    console.log('Offset:', offset, 'Type:', typeof offset);
+    console.log('Size:', size, 'Type:', typeof size);
+    // 计算偏移量和限制数量
+    const page = (offset - 1) * size;
+    const pageSize = size;
+
+    // 调整查询语句，正确使用准备语句的参数
+    const listQuery = `
+        SELECT * FROM user_list
+        OFFSET ? ROWS
+        FETCH NEXT ? ROWS ONLY
+    `;
+    const countQuery = `SELECT COUNT(*) as total FROM user_list`;
+    console.log('Executing query:', listQuery, [offset, size]);
+    try {
+      // 使用正确格式的参数执行查询
+      const [listData] = await connection.execute(listQuery, [parseInt(page), parseInt(pageSize)]);
+      const [countData] = await connection.execute(countQuery);
+
+      // 从 countData 中获取总记录数
+      const total = countData[0].total;
+
+      return {
+        list: listData,
+        total: total
+      };
+    } catch (error) {
+      console.error('执行查询时出错:', error);
+      throw new Error('获取用户列表时出错');
+    }
+  }
+
+
+
+
+  // 获取查询用户列表
+  async searchUserList(userReq) {
+    const { username, realname, phone, status, start_date, end_date } = userReq;
+    // 构建查询条件
+    let statement = `SELECT * FROM user_list WHERE 1=1`;
+    const params = [];
+
+    if (username) {
+      statement += ` AND username = ?`;
+      params.push(username);
+    }
+
+    if (realname) {
+      statement += ` AND realname = ?`;
+      params.push(realname);
+    }
+
+    if (phone) {
+      statement += ` AND phone = ?`;
+      params.push(phone);
+    }
+
+    if (status) {
+      statement += ` AND status = ?`;
+      params.push(status);
+    }
+
+    if (start_date) {
+      statement += ` AND created_at >= ?`;
+      params.push(start_date);
+    }
+
+    if (end_date) {
+      statement += ` AND created_at <= ?`;
+      params.push(end_date);
+    }
+    try {
+      const [data] = await connection.execute(statement, params);
+      return data;
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw new Error('Error retrieving user list');
+    }
+  }
+  // 新增用户
+  async addUser(userReq) {
+    const { username, realname, phone, status } = userReq;
+    const statement = `INSERT INTO user_list (username, realname, phone, status, created_at, updated_at) VALUES (?, ?, ?, ?,?, ?);`;
+
+    const created_at = new Date(); // 获取当前时间作为创建时间
+    const updated_at = new Date(); // 获取当前时间作为更新时间
+    const values = [username, realname, phone, status, created_at, updated_at];
+    try {
+      const [data] = await connection.execute(statement, values);
+      return data;
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw new Error('Error adding user');
+    }
+  }
+  // 删除用户
+  async deleteUser(userReq) {
+    const { id } = userReq;
+    const statement = `DELETE FROM user_list WHERE id = ?;`;
+    try {
+      const [data] = await connection.execute(statement, [id]);
+      return data;
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw new Error('Error deleting user');
+    }
+  }
 }
 
 export default new UserService();

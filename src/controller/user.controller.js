@@ -16,8 +16,6 @@ class UserController {
   // 根据用户id获取用户信息
   async getUserInfo(ctx, next) {
     // 1.获取用户id
-    console.log('进来了吗', ctx, ctx.query, ctx.request.body);
-    console.log('进来了userId吗', ctx.query.userId);
     const { userId } = ctx.query;
     console.log(userId, 'userId');
     // 2.调用service层的方法
@@ -44,6 +42,71 @@ class UserController {
       data: result
     };
   }
+  // 获取用户列表 根据query参数 offset 和 size
+  // 获取用户列表 根据query参数 offset 和 size
+  async getUserList(ctx, next) {
+    // 1.获取用户id
+    const { offset, size } = ctx.query;
+    console.log(offset, size, 'offset, size');
+
+    // 2.调用service层的方法
+    const result = await UserService.getUserList(parseInt(offset), parseInt(size));
+
+    // 3.返回响应
+    ctx.body = {
+      code: '200',
+      message: '查询成功',
+      data: result.list,
+      total: result.total
+    };
+  }
+
+
+
+
+  //查询用户列表
+  async searchUserList(ctx, next) {
+    // 1.获取用户id
+    const userReq = ctx.request.body;
+    console.log(userReq, 'userReq');
+    // 2.调用service层的方法
+    const result = await UserService.searchUserList(userReq);
+    // 3.返回响应
+    ctx.body = {
+      code: '200',
+      message: '查询成功',
+      data: result
+    };
+  }
+  // 新增用户
+  async addUser(ctx, next) {
+    // 1.获取用户id
+    const userReq = ctx.request.body;
+    console.log(userReq, 'userReq');
+    // 2.调用service层的方法
+    const result = await UserService.addUser(userReq);
+    // 3.返回响应
+    ctx.body = {
+      code: '200',
+      message: '新增成功',
+      data: result
+    };
+  }
+  // 删除用户
+  async deleteUser(ctx, next) {
+    // 1.获取用户id
+    const userReq = ctx.request.body;
+    console.log(userReq, 'userReq');
+    // 2.调用service层的方法
+    const result = await UserService.deleteUser(userReq);
+    // 3.返回响应
+    ctx.body = {
+      code: '200',
+      message: '删除成功',
+      data: result
+    };
+  }
+
 }
 
 export default new UserController();

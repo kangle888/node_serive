@@ -16,3 +16,15 @@ userRouter.get('/role', userController.getUserInfo);
 
 // 根据角色id获取菜单信息
 userRouter.get('/menu', userController.getMenuInfo);
+
+// 获取用户列表
+userRouter.get('/userList', userController.getUserList);
+
+//查询用户列表
+userRouter.get('/searchUserList', userController.searchUserList);
+
+// 新增用户
+userRouter.post('/addUser', userController.addUser);
+
+// 删除用户
+userRouter.post('/deleteUser', userController.deleteUser);
