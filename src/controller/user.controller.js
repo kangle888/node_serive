@@ -19,6 +19,7 @@ class UserController {
     const { userId } = ctx.query;
    
     // 2.调用service层的方法
+
     const [result] = await UserService.getUserInfo(userId);
     // 3.返回响应
     ctx.body = {
