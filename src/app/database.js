@@ -2,9 +2,9 @@ import mysql from 'mysql2';
 
 // 创建连接池
 const connectionPool = mysql.createPool({
-  host: 'localhost',
+  host: '106.14.97.130',
   user: 'root',
-  password: 'xkl789',
+  password: 'XUkang789.',
   port: 3306,
   database: 'codeerhub',
   connectionLimit: 5

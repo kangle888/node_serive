@@ -16,11 +16,25 @@ class UserController {
   // 根据用户id获取用户信息
   async getUserInfo(ctx, next) {
     // 1.获取用户id
-    console.log('进来了吗');
-    const { userId } = ctx.request.body;
-    console.log(userId, 'userId');
+    const { userId } = ctx.query;
+   
     // 2.调用service层的方法
     const [result] = await UserService.getUserInfo(userId);
+    // 3.返回响应
+    ctx.body = {
+      code: '200',
+      message: '查询成功',
+      data: result
+    };
+  }
+
+  // 根据roleId获取用户菜单信息
+  async getUserMenu(ctx, next) {
+    // 1.获取用户id
+    const { roleId } = ctx.query;
+    console.log('roleId', roleId);
+    // 2.调用service层的方法
+    const [result] = await UserService.getUserMenu(roleId);
     // 3.返回响应
     ctx.body = {
       code: '200',

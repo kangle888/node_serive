@@ -5,5 +5,5 @@ import './utils/handle-error.js';
 
 app.listen(SERVER_PORT, () => {
   // registerRouter();
-  console.log('server is running at http://localhost:3000');
+  console.log(`server is running at http://localhost:${SERVER_PORT}`);
 });

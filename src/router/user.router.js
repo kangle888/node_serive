@@ -13,3 +13,6 @@ userRouter.post('/', verifyUser, handlePassword, userController.create);
 
 // 根据用户id获取用户信息
 userRouter.get('/role', userController.getUserInfo);
+
+// 根据roleId获取用户菜单信息
+userRouter.get('/menu', userController.getUserMenu);

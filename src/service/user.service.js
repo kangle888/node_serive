@@ -21,16 +21,14 @@ class UserService {
 
   // 根据用户id获取用户信息
   async getUserInfo(userId) {
-    console.log('userId--------------------:', userId);
     const statement = `
         SELECT 
           user.id, 
           user.name, 
           user.createAt,
-          JSON_OBJECT('userId', user.id, 'username', user.name) AS USER,
           JSON_ARRAYAGG(JSON_OBJECT('roleId', roles.id, 'roleName', roles.role_name)) AS roles
         FROM 
-          USER
+          user
         LEFT JOIN 
           user_roles ON user.id = user_roles.user_id
         LEFT JOIN 
@@ -42,13 +40,69 @@ class UserService {
     `;
     try {
       const [data] = await connection.execute(statement, [userId]);
-      console.log('data:////////////', data);
       return data;
     } catch (error) {
       console.error('Error executing query:', error);
       throw new Error('Error retrieving user information');
     }
   }
+  // 根据roleId获取用户菜单信息
+  async getUserMenu(roleId) {
+    const statement = `
+        SELECT 
+          menu.id, 
+          menu.type, 
+          menu.url, 
+          menu.icon, 
+          menu.parent_id
+        FROM 
+          menu
+        LEFT JOIN 
+          role_menu ON menu.id = role_menu.menu_id
+        LEFT JOIN 
+          roles ON role_menu.role_id = roles.id
+        WHERE 
+          roles.id = ?;
+      `;
+    try {
+      const [data] = await connection.execute(statement, [roleId]);
+      // console.log('data', data);
+      const treeData = buildTree(data);
+      console.log('treeData-----', treeData);
+      return treeData;
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw new Error('Error retrieving user menu information');
+    }
+  }
 }
 
 export default new UserService();
+
+
+// 将数据转换为树状结构
+function buildTree(data) {
+  const map = new Map();
+  const roots = [];
+
+  // 创建一个以 ID 为键的数据映射
+  data.forEach(item => {
+    map.set(item.id, { ...item, children: [] });
+  });
+
+  // 构建树状结构
+  data.forEach(item => {
+    const node = map.get(item.id);
+    if (item.parent_id === null) {
+      roots.push(node);
+    } else {
+      const parentNode = map.get(item.parent_id);
+      if (parentNode) {
+        parentNode.children.push(node);
+      }
+    }
+  });
+
+  return roots;
+}
+
