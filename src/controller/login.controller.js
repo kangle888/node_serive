@@ -12,7 +12,7 @@ class LoginController {
     });
     // 3.返回数据
     ctx.body = {
-      code: 0,
+      code: 200,
       message: '登录成功',
       data: {
         id,

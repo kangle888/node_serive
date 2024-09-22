@@ -7,7 +7,7 @@ class MomentController {
     const result = await MomentService.create(content, id);
     console.log('创建动态成功, 内容是', content, '用户是', id);
     ctx.body = {
-      code: 0,
+      code: 200,
       message: '创建动态成功',
       data: result
     };
@@ -20,7 +20,7 @@ class MomentController {
 
     const result = await MomentService.getMomentList(offset, size);
     ctx.body = {
-      code: 0,
+      code: 200,
       message: '查询动态列表成功',
       data: result
     };

@@ -7,7 +7,7 @@ class UserController {
     const [result] = await UserService.create(user);
     // 3.返回响应
     ctx.body = {
-      code: '200',
+      code: 200,
       message: '注册成功',
       data: result
     };
@@ -23,7 +23,7 @@ class UserController {
     const [result] = await UserService.getUserInfo(userId);
     // 3.返回响应
     ctx.body = {
-      code: '200',
+      code: 200,
       message: '查询成功',
       data: result
     };
@@ -35,12 +35,13 @@ class UserController {
     const { roleId } = ctx.query;
     console.log('roleId', roleId);
     // 2.调用service层的方法
-    const [result] = await UserService.getUserMenu(roleId);
+    const res = await UserService.getUserMenu(roleId);
+    // console.log('resultkk*************', res);
     // 3.返回响应
     ctx.body = {
-      code: '200',
+      code: 200,
       message: '查询成功',
-      data: result
+      data: res
     };
   }
 }

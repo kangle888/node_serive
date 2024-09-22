@@ -6,7 +6,7 @@ class commentController {
     // 操作数据库
     const result = await CommentService.create(momentId, content, id);
     ctx.body = {
-      status: 0,
+      status: 200,
       message: '评论成功',
       data: result
     };
@@ -22,7 +22,7 @@ class commentController {
     // 操作数据库
     const result = await CommentService.reply(momentId, content, id, commentId);
     ctx.body = {
-      status: 0,
+      status: 200,
       message: '回复评论成功',
       data: result
     };
