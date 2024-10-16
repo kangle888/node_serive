@@ -13,7 +13,23 @@ import {formDataListRouter} from '../router/formDataList.router.js'
 // 1. 创建中间件
 const app = new koa();
 // 使用 CORS 中间件
-app.use(cors());
+// 配置 CORS 中间件
+app.use(cors({
+  origin: '*',  // 允许的前端源，可以根据需要修改
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // 允许的HTTP方法
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept'],  // 允许的请求头
+}));
+
+app.use(async (ctx, next) => {
+  if (ctx.method === 'OPTIONS') {
+    ctx.set('Access-Control-Allow-Origin', '*');
+    ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    ctx.status = 204;  // No Content 响应状态
+  } else {
+    await next();
+  }
+});
 
 // 2. 注册中间件
 app.use(bodyParser({
