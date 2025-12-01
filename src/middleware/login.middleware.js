@@ -18,20 +18,19 @@ export const varifyLogin = async (ctx, next) => {
     return ctx.app.emit('error', error, ctx);
   }
   // 3 判断用户名是否存在
-  const userArray = await UserService.getUserByName(username);
-  const users = userArray[0][0];
-  if (!users) {
+  const user = await UserService.getUserByName(username);
+  if (!user) {
     const error = new Error(USER_DOES_NOT_EXISTS);
     return ctx.app.emit('error', error, ctx);
   }
   // 4 查询数据库中密码和用户输入的密码是否一致
-  if (users.password !== md5Password(password)) {
+  if (user.password !== md5Password(password)) {
     const error = new Error(PASSWORD_IS_INCORRENT);
     return ctx.app.emit('error', error, ctx);
   }
 
   // 5. 将用户信息挂载到ctx上
-  ctx.user = users;
+  ctx.user = user;
   await next();
 };
 
@@ -39,7 +38,6 @@ export const varifyLogin = async (ctx, next) => {
 export const verifyAuth = async (ctx, next) => {
   // 1.获取token
   const authorization = ctx.headers.authorization;
-  console.log('authorization:', authorization);
   if (!authorization) {
     const error = new Error(UNAUTHORIZATION);
     return ctx.app.emit('error', error, ctx);

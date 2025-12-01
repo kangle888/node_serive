@@ -17,9 +17,8 @@ export const verifyUser = async (ctx, next) => {
 
   // 2.2 验证用户名是否已经存在数据库
   const { username } = user;
-  const users = await UserService.getUserByName(username);
-  if (Array.isArray(users[0]) && users[0].length) {
-    // console.log('用户已经存在', users[0]);
+  const foundUser = await UserService.getUserByName(username);
+  if (foundUser) {
     const error = new Error(NAME_ALREADY_EXISTS);
     return ctx.app.emit('error', error, ctx);
   }

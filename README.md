@@ -58,7 +58,9 @@
 
 ### 环境配置
 
-项目通过 `dotenv` 读取环境变量，建议在根目录创建 `.env` 文件：
+项目使用 `dotenv-flow`，支持按环境（`.env`, `.env.development`, `.env.production` 等）覆盖配置。所有配置会在 `src/config/index.js` 中集中导出（`appConfig`, `dbConfig`, `jwtConfig`, `uploadConfig`, `logConfig`），业务层不再直接读取环境变量。
+
+最基础的 `.env` 示例：
 
 ```bash
 SERVER_PORT=10000
@@ -70,6 +72,11 @@ DB_PASSWORD=你的密码
 DB_NAME=health_manager
 
 LOG_LEVEL=info
+
+JWT_PRIVATE_KEY_PATH=./src/config/keys/private.key
+JWT_PUBLIC_KEY_PATH=./src/config/keys/public.key
+UPLOAD_BASE_DIR=./src/public/upload
+UPLOAD_CHUNK_DIR=./src/public/uploadBigFile
 ```
 
 > 注意：`src/config/keys/private.key` 和 `public.key` 需要你自行准备（RSA 密钥对），用于 JWT 签名和验证。
@@ -100,49 +107,23 @@ npm run start
 
 ---
 
-### 数据库示例表结构
+### 数据库迁移 & DAO
 
-#### 1. 用户表（示例）
+项目集成了 **Knex** 作为查询构建器 + 迁移工具，`src/database/knexClient.js` 管理唯一的数据库连接。所有 SQL 操作拆分为 DAO 层（位于 `src/dao/`，当前包含 `user.dao.js` / `healthRecord.dao.js` / `uploadFile.dao.js`），Service 层仅负责业务聚合。
 
-```sql
-CREATE TABLE `user` (
-  `id` INT PRIMARY KEY AUTO_INCREMENT,
-  `name` VARCHAR(50) NOT NULL,
-  `password` VARCHAR(255) NOT NULL,
-  `createAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updateAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+常用命令：
+
+```bash
+# 执行全部迁移（创建/更新表结构）
+npm run migrate
+
+# 回滚上一次迁移
+npm run migrate:rollback
 ```
 
-#### 2. 健康记录表（健康管理核心）
+迁移文件位于 `migrations/` 目录，示例 `20251201_init.js` 涵盖了 `user`、`health_record` 等核心表。你可以以此为模板新增自己的数据库变更，所有环境保持一致。
 
-```sql
-CREATE TABLE `health_record` (
-  `id` INT PRIMARY KEY AUTO_INCREMENT,
-  `user_id` INT NOT NULL,
-  `type` VARCHAR(50) NOT NULL COMMENT '记录类型：bloodPressure / bloodSugar / weight / heartRate / other',
-  `value` DECIMAL(10, 2) NOT NULL COMMENT '数值',
-  `unit` VARCHAR(20) DEFAULT '' COMMENT '单位，例如 kg, mmHg',
-  `record_time` DATETIME NOT NULL COMMENT '记录时间',
-  `createAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updateAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_user_record_time (`user_id`, `record_time`)
-);
-```
-
-#### 3. 上传文件信息表（示例）
-
-```sql
-CREATE TABLE `uploaded_images_files` (
-  `id` INT PRIMARY KEY AUTO_INCREMENT,
-  `filehash` VARCHAR(64) NOT NULL UNIQUE,
-  `filename` VARCHAR(255) NOT NULL,
-  `filepath` VARCHAR(500) NOT NULL,
-  `createAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-> 其他表（角色、菜单等）可参考现有 SQL 或按业务自行扩展。
+> 如果仍需手写 SQL，可在 DAO 层调用 `knexClient.raw(...)`，统一出口便于测试与维护。
 
 ---
 

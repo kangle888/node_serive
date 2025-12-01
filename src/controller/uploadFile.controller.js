@@ -4,12 +4,17 @@ import { dirname, join } from 'path';
 import fs from 'fs';
 import uploadFileService from '../service/uploadFile.service.js';
 import multiparty from 'multiparty';
-
-
+import { uploadConfig } from '../config/index.js';
 
 // 获取当前模块目录
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const ensureDir = (dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
 
 class UploadFileController {
   async uploadFile(ctx, next) {
@@ -30,17 +35,13 @@ class UploadFileController {
     // 获取文件的后缀
     const suffix = filename.slice(filename.lastIndexOf(".")) 
   // 写入的文件路径
-  const filePath = join(__dirname, `../public/upload/${filehash}${suffix}`);
-  const uploadDir = join(__dirname, '../public/upload');
+  const uploadDir = uploadConfig.baseDir;
+  const filePath = join(uploadDir, `${filehash}${suffix}`);
   // 确保文件夹存在  
   
   try {
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    ensureDir(uploadDir);
 
-    // 获取文件夹下的文件列表
-    const files = fs.readdirSync(uploadDir);
     // 都命中才是同名文件 显示文件已存在 否则 显示上传成功
     const res = await uploadFileService.saveFileInfoToDatabase(filehash, filename, filePath);
     if (res === '文件已存在') {
@@ -98,15 +99,11 @@ async uploadChunk(ctx, next) {
     const fileHash = result.fields.fileHash[0];
     const chunkHash = result.fields.chunkHash[0];
   //   // 写入的文件路径 ， 临时存放的目录
-  const chunkPath = join(__dirname, `../public/uploadBigFile/${fileHash}`);
-  // const uploadDir = join(__dirname, '../public/uploadBigFile');
-  if (!fs.existsSync(chunkPath)) {
-    fs.mkdirSync(chunkPath, { recursive: true });
-  }
+  const chunkPath = join(uploadConfig.chunkDir, fileHash);
+  ensureDir(chunkPath);
   // 写入的文件
    const oldPath = result.files.chunk[0].path;
    const newPath = join(chunkPath, chunkHash);
-   console.log('oldPath:', oldPath, 'newPath:', newPath);
   // 将切片文件从临时目录移动到指定目录
    // 检查源文件是否存在
    if (!fs.existsSync(oldPath)) {
@@ -137,7 +134,7 @@ async uploadChunk(ctx, next) {
   // 获取文件的后缀
   const suffix = getSuffix(filename);
   // 写入的文件路径
-  const fileDir = join(__dirname, '../public/uploadBigFile');
+  const fileDir = uploadConfig.chunkDir;
   const filePath = join(fileDir, `${fileHash}${suffix}`);
 
   if (fs.existsSync(filePath)) {
@@ -146,7 +143,7 @@ async uploadChunk(ctx, next) {
   }
 
   // 如果不存在，则合并文件
-  const chunkDir = join(__dirname, `../public/uploadBigFile/${fileHash}`);
+  const chunkDir = join(uploadConfig.chunkDir, fileHash);
   // 判断临时文件夹是否存在
   if (!fs.existsSync(chunkDir)) {
     ctx.body = { code: 500, message: '合并失败，请重新上传', data: {} };
@@ -180,7 +177,7 @@ async uploadChunk(ctx, next) {
   // 等待所有文件合并完成
   await Promise.all(chunks);
   // 删除临时文件夹
-  fs.rmdirSync(chunkDir);
+  fs.rmSync(chunkDir, { recursive: true, force: true });
   ctx.body = { code: 200, message: '合并文件成功', data: {} };
 }
 
@@ -190,10 +187,10 @@ async verifyFile(ctx, next) {
   // 获取文件的后缀
   const suffix = getSuffix(filename);
   // 写入的文件路径
-  const filePath = join(__dirname, `../public/uploadBigFile/${fileHash}${suffix}`);
+  const filePath = join(uploadConfig.chunkDir, `${fileHash}${suffix}`);
 
   // 返回服务器已经上传成功的切片
-  const chunkDir = join(__dirname, `../public/uploadBigFile/${fileHash}`);
+  const chunkDir = join(uploadConfig.chunkDir, fileHash);
   let chunkPaths;
   if (fs.existsSync(chunkDir)) {
     chunkPaths = await fs.promises.readdir(chunkDir);

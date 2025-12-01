@@ -1,80 +1,23 @@
-import connection from '../app/database.js';
+import UserDAO from '../dao/user.dao.js';
 
 class UserService {
   async create(user) {
-    // 1 获取用户数据
-    const { username, password } = user;
-    // 2 拼接statrment
-    const statement = `INSERT INTO user (name, password) VALUES (?, ?);`;
-    // 3 执行sql
-    const result = await connection.execute(statement, [username, password]);
-    // 4 返回结果
-    return result;
+    return UserDAO.create(user);
   }
 
-  // 查询用户
   async getUserByName(username) {
-    const statement = `SELECT * FROM user WHERE name = ?;`;
-    const values = await connection.execute(statement, [username]);
-    return values;
+    return UserDAO.findByName(username);
   }
 
   // 根据用户id获取用户信息
   async getUserInfo(userId) {
-    const statement = `
-        SELECT 
-          user.id, 
-          user.name, 
-          user.createAt,
-          JSON_ARRAYAGG(JSON_OBJECT('roleId', roles.id, 'roleName', roles.role_name)) AS roles
-        FROM 
-          user
-        LEFT JOIN 
-          user_roles ON user.id = user_roles.user_id
-        LEFT JOIN 
-          roles ON user_roles.role_id = roles.id
-        WHERE 
-          user.id = ?
-        GROUP BY 
-          user.id;
-    `;
-    try {
-      const [data] = await connection.execute(statement, [userId]);
-      return data;
-    } catch (error) {
-      console.error('Error executing query:', error);
-      throw new Error('Error retrieving user information');
-    }
+    const [rows] = await UserDAO.getUserInfo(userId);
+    return rows;
   }
   // 根据roleId获取用户菜单信息
   async getUserMenu(roleId) {
-    const statement = `
-        SELECT 
-          menu.id, 
-          menu.type, 
-          menu.url, 
-          menu.icon, 
-          menu.parent_id,
-          menu.name
-        FROM 
-          menu
-        LEFT JOIN 
-          role_menu ON menu.id = role_menu.menu_id
-        LEFT JOIN 
-          roles ON role_menu.role_id = roles.id
-        WHERE 
-          roles.id = ?;
-      `;
-    try {
-      const [data] = await connection.execute(statement, [roleId]);
-      console.log('data', data);
-      const treeData = buildTree(data);
-      // console.log('treeData-----', treeData);
-      return treeData;
-    } catch (error) {
-      console.error('Error executing query:', error);
-      throw new Error('Error retrieving user menu information');
-    }
+    const [rows] = await UserDAO.getUserMenu(roleId);
+    return buildTree(rows);
   }
 }
 
