@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "src/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --exec ts-node ./src/main.js",
-    "build": "tsc"
+    "start": "node ./src/main.js",
+    "dev": "nodemon ./src/main.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,23 +16,29 @@
     "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
     "jsonwebtoken": "^9.0.2",
+    "joi": "^17.13.3",
     "koa": "^2.15.2",
     "koa-bodyparser": "^4.4.1",
+    "koa-helmet": "^7.0.2",
+    "koa-ratelimit": "^5.0.1",
+    "koa-static": "^5.0.0",
     "multiparty": "^4.2.3",
     "mysql2": "^3.10.1",
-    "spark-md5": "^3.0.2"
+    "spark-md5": "^3.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "koa2-swagger-ui": "^5.10.0",
+    "winston": "^3.14.2"
   },
   "devDependencies": {
     "@types/koa__cors": "^5.0.0",
     "@types/koa__router": "^12.0.4",
     "@types/koa-bodyparser": "^4.3.12",
-    "@types/mockjs": "^1.0.10",
     "@types/multiparty": "^0.0.36",
     "@types/spark-md5": "^3.0.4",
+    "nodemon": "^3.1.7",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-node": "^11.1.0",
-    "mockjs": "^1.1.0",
     "prettier": "3.2.5",
     "typescript": "^5.4.4"
   }
