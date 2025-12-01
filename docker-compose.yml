@@ -1,0 +1,14 @@
+services:
+  health-backend:
+    build: .
+    container_name: health-backend
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "${SERVER_PORT:-10001}:${SERVER_PORT:-10001}"
+    volumes:
+      - ./src/public/upload:/app/src/public/upload
+      - ./src/public/uploadBigFile:/app/src/public/uploadBigFile
+      - ./logs:/app/logs
+

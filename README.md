@@ -24,7 +24,6 @@
 
 - `src/main.js`：应用入口
 - `src/app/index.js`：Koa 应用初始化，注册中间件和路由
-- `src/app/database.js`：MySQL 连接池配置（读取环境变量）
 - `src/config/`
   - `index.js`：端口配置（`SERVER_PORT`）
   - `error.js`：错误枚举常量
@@ -104,6 +103,57 @@ npm run start
 ```
 
 默认服务监听：`http://localhost:10000`（可通过 `.env` 中 `SERVER_PORT` 调整）
+
+---
+
+### 本地 Docker 部署
+
+仓库内提供 `Dockerfile` 和 `docker-compose.yml`，方便本地或服务器直接以容器方式运行。
+
+1. **准备环境变量文件**  
+   在项目根目录创建 `.env.docker`（文件名可自定义，需与 `docker-compose.yml` 的 `env_file` 对应）。内容示例：
+   ```
+   NODE_ENV=production
+   SERVER_PORT=10000
+
+   DB_HOST=host.docker.internal   # 容器访问宿主机数据库
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=你的密码
+   DB_NAME=health_manager
+
+   LOG_LEVEL=info
+   JWT_PRIVATE_KEY_PATH=/app/src/config/keys/private.key
+   JWT_PUBLIC_KEY_PATH=/app/src/config/keys/public.key
+   UPLOAD_BASE_DIR=/app/src/public/upload
+   UPLOAD_CHUNK_DIR=/app/src/public/uploadBigFile
+   ```
+   > Linux 若数据库不在宿主机，可将 `DB_HOST` 替换为真实地址或容器服务名。
+
+2. **构建镜像**
+   ```bash
+   docker build -t health-backend .
+   ```
+
+3. **使用 docker-compose 启动**
+   ```bash
+   docker-compose up -d
+   ```
+   - 会自动映射端口 `${SERVER_PORT}`，并将上传目录挂载到宿主机 `./src/public/upload*`，避免容器清除时文件丢失。
+   - 停止/删除：`docker-compose down`
+
+4. **单独运行（不依赖 compose）**
+   ```bash
+   docker run -d \
+     --name health-backend \
+     --env-file ./.env.docker \
+     -p 10000:10000 \
+     -v $(pwd)/src/public/upload:/app/src/public/upload \
+     -v $(pwd)/src/public/uploadBigFile:/app/src/public/uploadBigFile \
+     health-backend
+   ```
+
+部署到服务器时，只需复制 `.env.docker`（或使用真实 `.env.production`）、调整数据库/端口配置，并把上传目录与密钥文件挂载到容器内部路径即可。
 
 ---
 
