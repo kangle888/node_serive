@@ -9,6 +9,7 @@ import { koaSwagger } from 'koa2-swagger-ui';
 import { userRouter } from '../router/user.router.js';
 import { loginRouter } from '../router/login.router.js';
 import { uploadFileRouter } from '../router/uploadFile.router.js';
+import { roomRouter } from '../router/room.router.js';
 import { healthRecordRouter } from '../router/healthRecord.router.js';
 import { swaggerSpecs } from '../config/swagger.js';
 import { logger } from '../utils/logger.js';
@@ -100,5 +101,6 @@ app.use(userRouter.routes()).use(userRouter.allowedMethods());
 app.use(loginRouter.routes()).use(loginRouter.allowedMethods());
 app.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
 app.use(healthRecordRouter.routes()).use(healthRecordRouter.allowedMethods());
+app.use(roomRouter.routes()).use(roomRouter.allowedMethods());
 
 export default app;
