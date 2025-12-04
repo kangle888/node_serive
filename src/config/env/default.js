@@ -36,6 +36,12 @@ export default {
   },
   log: {
     level: process.env.LOG_LEVEL || 'info'
+  },
+  wechat: {
+    appid: process.env.WECHAT_APPID || 'wx4adbe79a0790e1c6',
+    secret: process.env.WECHAT_SECRET || '68506e2fc25dac31cc043597f2381a36',
+    // 微信登录接口地址
+    loginUrl: 'https://api.weixin.qq.com/sns/jscode2session'
   }
 };
 

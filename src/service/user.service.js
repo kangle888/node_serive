@@ -9,6 +9,51 @@ class UserService {
     return UserDAO.findByName(username);
   }
 
+  /**
+   * 根据 openid 查找或创建微信用户
+   * @param {string} openid - 微信 openid
+   * @param {Object} userInfo - 微信用户信息（可选）
+   * @param {string} userInfo.unionid - 微信 unionid
+   * @param {string} userInfo.nickname - 昵称
+   * @param {string} userInfo.avatar_url - 头像URL
+   */
+  async findOrCreateWechatUser(openid, userInfo = {}) {
+    // 先查找用户
+    let user = await UserDAO.findByOpenid(openid);
+    
+    if (!user) {
+      // 用户不存在，创建新用户
+      const [insertId] = await UserDAO.createWechatUser({
+        openid,
+        unionid: userInfo.unionid,
+        nickname: userInfo.nickname,
+        avatar_url: userInfo.avatar_url
+      });
+      user = await UserDAO.findById(insertId);
+    } else {
+      // 用户存在，更新用户信息（如果有新信息）
+      if (userInfo.nickname || userInfo.avatar_url || userInfo.unionid) {
+        await UserDAO.updateWechatUser(user.id, {
+          nickname: userInfo.nickname,
+          avatar_url: userInfo.avatar_url,
+          unionid: userInfo.unionid
+        });
+        // 重新获取用户信息
+        user = await UserDAO.findById(user.id);
+      }
+    }
+    
+    return user;
+  }
+
+  /**
+   * 根据用户ID获取用户信息
+   * @param {number} userId - 用户ID
+   */
+  async getUserById(userId) {
+    return UserDAO.findById(userId);
+  }
+
   // 根据用户id获取用户信息
   async getUserInfo(userId) {
     const [rows] = await UserDAO.getUserInfo(userId);

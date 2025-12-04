@@ -41,5 +41,6 @@ export const dbConfig = config.db;
 export const jwtConfig = config.jwt;
 export const uploadConfig = config.upload;
 export const logConfig = config.log;
+export const wechatConfig = config.wechat;
 
 export default config;
