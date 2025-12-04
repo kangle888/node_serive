@@ -14,11 +14,11 @@ export default {
   },
   db: {
     client: 'mysql2',
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || '119.45.128.43',
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'health_manager',
+    password: process.env.DB_PASSWORD || 'XUkang789.',
+    database: process.env.DB_NAME || 'BookKeeping',
     connectionLimit: Number(process.env.DB_POOL_MAX) || 5
   },
   jwt: {
