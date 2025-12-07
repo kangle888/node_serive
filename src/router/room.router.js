@@ -21,8 +21,31 @@ const transferSchema = Joi.object({
   remark: Joi.string().max(255).allow('', null)
 });
 
-roomRouter.post('/', verifyAuth, validate(createRoomSchema), RoomController.create);
-roomRouter.post('/join', verifyAuth, validate(joinRoomSchema), RoomController.join);
+// 注意：具体路由要放在动态路由之前，避免被 :roomId 匹配
+roomRouter.post(
+  '/',
+  verifyAuth,
+  validate(createRoomSchema),
+  RoomController.create
+);
+roomRouter.post(
+  '/join',
+  verifyAuth,
+  validate(joinRoomSchema),
+  RoomController.join
+);
+
+// 生成房间小程序码（必须在 /:roomId 之前）
+const qrCodeSchema = Joi.object({
+  inviteCode: Joi.string().alphanum().length(8).required()
+});
+roomRouter.post(
+  '/qrcode',
+  verifyAuth,
+  validate(qrCodeSchema),
+  RoomController.generateQRCode
+);
+
 roomRouter.get('/', verifyAuth, RoomController.list);
 roomRouter.get('/:roomId', verifyAuth, RoomController.detail);
 roomRouter.post(
@@ -31,5 +54,3 @@ roomRouter.post(
   validate(transferSchema),
   RoomController.transfer
 );
-
-
