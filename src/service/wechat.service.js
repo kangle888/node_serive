@@ -16,7 +16,7 @@ class WechatService {
    * 获取微信 access_token
    * access_token 有效期为 7200 秒，这里实现简单的缓存机制
    */
-  async getAccessToken() {
+  async getAccessToken () {
     const now = Date.now();
 
     // 如果缓存有效，直接返回
@@ -66,145 +66,83 @@ class WechatService {
    * @param {object} lineColor - 线条颜色，autoColor 为 false 时生效
    * @param {boolean} isHyaline - 是否需要透明底色，默认 false
    */
-  async getUnlimitedQRCode({
+  async getUnlimitedQRCode ({
     scene,
     page,
     width = 430,
     autoColor = false,
     lineColor = { r: 0, g: 0, b: 0 },
-    isHyaline = false
+    isHyaline = false,
+    useWxacodeUnlimit = true
   }) {
+    if (!scene) throw new Error('scene 参数必填');
+
+    // 按字节截取 scene，防止中文超 32 字节
+    const truncateScene = (sceneStr) => {
+      let bytes = 0, result = '';
+      for (let char of sceneStr) {
+        bytes += char.charCodeAt(0) > 127 ? 3 : 1;
+        if (bytes > 32) break;
+        result += char;
+      }
+      return result;
+    };
+
+    const requestBody = {
+      scene: truncateScene(String(scene)),
+      width,
+      auto_color: autoColor,
+      line_color: lineColor,
+      is_hyaline: isHyaline
+    };
+
+    if (page) requestBody.page = page;
+
+    const accessToken = await this.getAccessToken();
+    if (!accessToken) throw new Error('access_token 获取失败');
+
+    const url = useWxacodeUnlimit
+      ? `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${accessToken}`
+      : `https://api.weixin.qq.com/wxa/getunlimited?access_token=${accessToken}`;
+
     try {
-      const accessToken = await this.getAccessToken();
-
-      // 构建请求体
-      // 注意：微信小程序码生成接口要求：
-      // 1. scene 参数必需，最大32字符
-      // 2. page 参数可选，但如果传了必须是已发布的页面路径
-      // 3. 如果小程序未发布，即使不传 page 也可能报错
-      const requestBody = {
-        scene: String(scene).substring(0, 32), // 确保不超过32字符
-        width,
-        auto_color: autoColor,
-        line_color: lineColor,
-        is_hyaline: isHyaline
-      };
-
-      // 明确传递 page 参数为首页（tabBar 页面，应该存在）
-      // 如果小程序未发布，这里会报错，但至少能明确问题
-      requestBody.page = page || 'pages/index/index';
-
-      // 调试日志：打印实际发送的请求参数
-      console.log(
-        '生成小程序码请求参数:',
-        JSON.stringify(requestBody, null, 2)
-      );
-      console.log('scene 参数详情:', {
-        value: scene,
-        length: String(scene).length,
-        type: typeof scene
+      const response = await axios.post(url, requestBody, {
+        responseType: 'arraybuffer',
+        validateStatus: () => true,
+        timeout: 30000,
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      const response = await axios.post(
-        `https://api.weixin.qq.com/wxa/getunlimited?access_token=${accessToken}`,
-        requestBody,
-        {
-          responseType: 'arraybuffer', // 重要：返回二进制数据
-          validateStatus: () => true // 不自动抛出状态码错误，手动处理
-        }
-      );
-
-      // 检查响应状态码
-      if (response.status !== 200) {
-        const errorText = Buffer.from(response.data).toString('utf8');
-        console.error(
-          '微信 API 返回非 200 状态码:',
-          response.status,
-          errorText
-        );
-        try {
-          const errorData = JSON.parse(errorText);
-          throw new Error(
-            `生成小程序码失败: ${errorData.errmsg || `错误码 ${errorData.errcode}` || '未知错误'}`
-          );
-        } catch (parseError) {
-          throw new Error(
-            `生成小程序码失败: HTTP ${response.status} - ${errorText || '服务器返回错误'}`
-          );
-        }
-      }
-
-      // 检查是否是错误响应（微信 API 错误时可能返回 JSON，即使状态码是 200）
       const contentType = response.headers['content-type'] || '';
       if (contentType.includes('application/json')) {
-        try {
-          const errorText = Buffer.from(response.data).toString('utf8');
-          console.error('微信 API 返回 JSON 错误:', errorText);
-          const errorData = JSON.parse(errorText);
-          const errorMsg =
-            errorData.errmsg || `错误码: ${errorData.errcode}` || '未知错误';
-          throw new Error(`生成小程序码失败: ${errorMsg}`);
-        } catch (parseError) {
-          console.error('解析错误响应失败:', parseError);
-          const errorText = Buffer.from(response.data).toString('utf8');
-          throw new Error(`生成小程序码失败: ${errorText || '服务器返回错误'}`);
+        // 返回 JSON，说明接口报错
+        const errorText = Buffer.from(response.data).toString('utf8');
+        const errorData = JSON.parse(errorText);
+
+        // 自动回退 page
+        if (errorData.errcode === 40066 && page) {
+          console.warn('指定 page 无效，自动回退默认首页:', page);
+          return await this.getUnlimitedQRCode({
+            scene,
+            width,
+            autoColor,
+            lineColor,
+            isHyaline,
+            useWxacodeUnlimit
+          });
         }
+
+        throw new Error(`生成小程序码失败: ${errorData.errmsg || '未知错误'}, 错误码: ${errorData.errcode}`);
       }
 
-      // 检查响应数据是否为空
       if (!response.data || response.data.length === 0) {
         throw new Error('生成小程序码失败: 服务器返回空数据');
       }
 
-      // 将二进制数据转换为 base64
-      const base64 = Buffer.from(response.data).toString('base64');
-      return `data:image/png;base64,${base64}`;
-    } catch (error) {
-      console.error('生成小程序码失败:', error);
-      console.error('错误详情:', {
-        message: error.message,
-        response: error.response
-          ? {
-              status: error.response.status,
-              statusText: error.response.statusText,
-              data: Buffer.isBuffer(error.response.data)
-                ? error.response.data.toString('utf8')
-                : error.response.data,
-              headers: error.response.headers
-            }
-          : null
-      });
-
-      // 如果是 axios 错误，尝试提取更详细的错误信息
-      if (error.response) {
-        const errorData = error.response.data;
-        if (Buffer.isBuffer(errorData)) {
-          // 如果是 Buffer，尝试解析为 JSON
-          try {
-            const errorText = errorData.toString('utf8');
-            console.error('微信 API 错误响应 (Buffer):', errorText);
-            const parsed = JSON.parse(errorText);
-            throw new Error(
-              `生成小程序码失败: ${parsed.errmsg || `错误码: ${parsed.errcode}` || '未知错误'}`
-            );
-          } catch (parseErr) {
-            const errorText = errorData.toString('utf8');
-            throw new Error(
-              `生成小程序码失败: ${errorText || '服务器返回错误'}`
-            );
-          }
-        } else if (typeof errorData === 'object' && errorData.errmsg) {
-          throw new Error(`生成小程序码失败: ${errorData.errmsg}`);
-        } else if (typeof errorData === 'string') {
-          throw new Error(`生成小程序码失败: ${errorData}`);
-        }
-      }
-
-      // 如果错误已经有 message，直接抛出（避免重复包装）
-      if (error.message && !error.message.includes('生成小程序码失败')) {
-        throw new Error(`生成小程序码失败: ${error.message}`);
-      }
-      throw error;
+      return `data:image/png;base64,${Buffer.from(response.data).toString('base64')}`;
+    } catch (err) {
+      console.error('生成小程序码异常:', err);
+      throw err;
     }
   }
 }
