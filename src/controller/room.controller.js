@@ -108,7 +108,7 @@ class RoomController {
         autoColor: false,
         lineColor: { r: 39, g: 186, b: 155 },
         isHyaline: false,
-        check_path: true,
+        check_path: false,
         env_version: 'trial',
         useWxacodeUnlimit: true // 体验版接口
       });
