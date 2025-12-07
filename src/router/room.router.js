@@ -46,6 +46,13 @@ roomRouter.post(
   RoomController.generateQRCode
 );
 
+// 测试微信 access_token 获取（用于调试）
+roomRouter.get(
+  '/test-wechat-token',
+  verifyAuth,
+  RoomController.testWechatToken
+);
+
 roomRouter.get('/', verifyAuth, RoomController.list);
 roomRouter.get('/:roomId', verifyAuth, RoomController.detail);
 roomRouter.post(
