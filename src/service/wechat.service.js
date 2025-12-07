@@ -69,6 +69,8 @@ class WechatService {
   async getUnlimitedQRCode ({
     scene,
     page,
+    check_path,
+    env_version,
     width = 430,
     autoColor = false,
     lineColor = { r: 0, g: 0, b: 0 },
@@ -93,7 +95,9 @@ class WechatService {
       width,
       auto_color: autoColor,
       line_color: lineColor,
-      is_hyaline: isHyaline
+      is_hyaline: isHyaline,
+      check_path,
+      env_version,
     };
 
     if (page) requestBody.page = page;

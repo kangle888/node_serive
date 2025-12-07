@@ -103,11 +103,13 @@ class RoomController {
       const qrCodeBase64 = await WechatService.getUnlimitedQRCode({
         scene: code,
         // 默认不传 page，让微信使用默认首页，避免 uni-app 编译路径问题
-        page: '',
+        page: 'pages/index/index',
         width: 430,
         autoColor: false,
         lineColor: { r: 39, g: 186, b: 155 },
         isHyaline: false,
+        check_path: true,
+        env_version: 'trial',
         useWxacodeUnlimit: true // 体验版接口
       });
 
