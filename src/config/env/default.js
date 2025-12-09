@@ -41,7 +41,15 @@ export default {
     appid: process.env.WECHAT_APPID || 'wx4adbe79a0790e1c6',
     secret: process.env.WECHAT_SECRET || '68506e2fc25dac31cc043597f2381a36',
     // 微信登录接口地址
-    loginUrl: 'https://api.weixin.qq.com/sns/jscode2session'
+    loginUrl: 'https://api.weixin.qq.com/sns/jscode2session',
+    // 小程序码默认配置，可用环境变量覆盖
+    qrPage: process.env.WECHAT_QR_PAGE || 'pages/index/index',
+    qrEnvVersion: process.env.WECHAT_QR_ENV || 'trial', // trial/release/develop
+    qrWidth: Number(process.env.WECHAT_QR_WIDTH) || 430,
+    qrCheckPath: process.env.WECHAT_QR_CHECK_PATH
+      ? process.env.WECHAT_QR_CHECK_PATH === 'true'
+      : false,
+    qrHyaline: process.env.WECHAT_QR_HYALINE === 'true'
   }
 };
 

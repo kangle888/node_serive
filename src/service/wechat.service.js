@@ -68,13 +68,13 @@ class WechatService {
    */
   async getUnlimitedQRCode ({
     scene,
-    page,
-    check_path,
-    env_version,
-    width = 430,
+    page = wechatConfig.wechat?.qrPage || wechatConfig.qrPage,
+    check_path = wechatConfig.wechat?.qrCheckPath ?? wechatConfig.qrCheckPath,
+    env_version = wechatConfig.wechat?.qrEnvVersion || wechatConfig.qrEnvVersion,
+    width = wechatConfig.wechat?.qrWidth || wechatConfig.qrWidth || 430,
     autoColor = false,
     lineColor = { r: 0, g: 0, b: 0 },
-    isHyaline = false,
+    isHyaline = wechatConfig.wechat?.qrHyaline || wechatConfig.qrHyaline || false,
     useWxacodeUnlimit = true
   }) {
     if (!scene) throw new Error('scene 参数必填');
@@ -105,9 +105,7 @@ class WechatService {
     const accessToken = await this.getAccessToken();
     if (!accessToken) throw new Error('access_token 获取失败');
 
-    const url = useWxacodeUnlimit
-      ? `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${accessToken}`
-      : `https://api.weixin.qq.com/wxa/getunlimited?access_token=${accessToken}`;
+    const url = `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${accessToken}`
 
     try {
       const response = await axios.post(url, requestBody, {
