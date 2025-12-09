@@ -1,6 +1,7 @@
 import RoomService from '../service/room.service.js';
 import WechatService from '../service/wechat.service.js';
 import RoomDAO from '../dao/room.dao.js';
+import { wechatConfig } from '../config/index.js';
 
 class RoomController {
   async create (ctx) {
@@ -102,15 +103,17 @@ class RoomController {
       // 生成小程序码
       const qrCodeBase64 = await WechatService.getUnlimitedQRCode({
         scene: code,
-        // 默认不传 page，让微信使用默认首页，避免 uni-app 编译路径问题
-        page: 'pages/index/index',
-        width: 430,
+        page: wechatConfig.wechat?.qrPage || wechatConfig.qrPage || 'pages/index/index',
+        width: wechatConfig.wechat?.qrWidth || wechatConfig.qrWidth || 430,
         autoColor: false,
         lineColor: { r: 39, g: 186, b: 155 },
-        isHyaline: false,
-        check_path: false,
-        env_version: 'trial',
-        useWxacodeUnlimit: true // 体验版接口
+        isHyaline:
+          wechatConfig.wechat?.qrHyaline || wechatConfig.qrHyaline || false,
+        check_path:
+          wechatConfig.wechat?.qrCheckPath ?? wechatConfig.qrCheckPath ?? false,
+        env_version:
+          wechatConfig.wechat?.qrEnvVersion || wechatConfig.qrEnvVersion || 'trial',
+        useWxacodeUnlimit: true // 默认体验版接口
       });
 
       ctx.body = {
