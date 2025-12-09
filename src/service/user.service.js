@@ -64,6 +64,16 @@ class UserService {
     const [rows] = await UserDAO.getUserMenu(roleId);
     return buildTree(rows);
   }
+
+  async updateProfile(userId, payload) {
+    await UserDAO.updateWechatUser(userId, {
+      nickname: payload.nickname,
+      avatar_url: payload.avatar_url,
+      name: payload.username,
+      phone: payload.phone
+    });
+    return UserDAO.findById(userId);
+  }
 }
 
 export default new UserService();

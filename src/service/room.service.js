@@ -2,6 +2,7 @@ import knexClient from '../database/knexClient.js';
 import RoomDAO from '../dao/room.dao.js';
 import RoomMemberDAO from '../dao/roomMember.dao.js';
 import RoomTransactionDAO from '../dao/roomTransaction.dao.js';
+import UserDAO from '../dao/user.dao.js';
 import eventBus from '../utils/event-bus.js';
 import { generateId } from '../utils/id-generator.js';
 import { generateInviteCode } from '../utils/invite-code.js';
@@ -79,8 +80,19 @@ class RoomService {
     const room = await RoomDAO.findById(roomId);
     if (!room) return null;
     const members = await RoomMemberDAO.listByRoom(roomId);
+    const userIds = members.map((m) => m.user_id);
+    const users = await UserDAO.findByIds(userIds);
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const hydratedMembers = members.map((m) => {
+      const user = userMap.get(m.user_id);
+      return {
+        ...m,
+        nickname: user?.nickname || user?.name || `成员${String(m.user_id).slice(-4)}`,
+        avatar_url: user?.avatar_url || null
+      };
+    });
     const transactions = await RoomTransactionDAO.listByRoom(roomId, 20);
-    return { room, members, transactions };
+    return { room, members: hydratedMembers, transactions };
   }
 
   async listUserRooms(userId) {

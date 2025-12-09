@@ -47,6 +47,7 @@ class UserDAO {
     if (userData.unionid !== undefined) updateData.unionid = userData.unionid;
     if (userData.nickname !== undefined) updateData.nickname = userData.nickname;
     if (userData.avatar_url !== undefined) updateData.avatar_url = userData.avatar_url;
+    if (userData.name !== undefined) updateData.name = userData.name;
     if (userData.phone !== undefined) updateData.phone = userData.phone;
 
     return knexClient(USER_TABLE)
@@ -60,6 +61,15 @@ class UserDAO {
    */
   findById(userId) {
     return knexClient(USER_TABLE).where({ id: userId }).first();
+  }
+
+  /**
+   * 批量根据用户ID获取用户信息
+   * @param {number[]} userIds - 用户ID数组
+   */
+  findByIds(userIds) {
+    if (!userIds?.length) return Promise.resolve([]);
+    return knexClient(USER_TABLE).whereIn('id', userIds);
   }
 
   getUserInfo(userId) {
