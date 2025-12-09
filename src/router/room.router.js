@@ -40,7 +40,7 @@ const qrCodeSchema = Joi.object({
   inviteCode: Joi.string().alphanum().length(8).required()
 });
 roomRouter.post(
-  '/qrcode',
+  '/qr',
   validate(qrCodeSchema),
   RoomController.generateQRCode
 );
