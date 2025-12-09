@@ -68,6 +68,20 @@ class RoomController {
     };
   }
 
+  async remove (ctx) {
+    const { roomId } = ctx.params;
+    const userId = ctx.user.id;
+    const res = await RoomService.deleteRoom({ roomId, userId });
+    ctx.body = { code: 200, message: '房间已删除', data: res };
+  }
+
+  async leave (ctx) {
+    const { roomId } = ctx.params;
+    const userId = ctx.user.id;
+    const res = await RoomService.leaveRoom({ roomId, userId });
+    ctx.body = { code: 200, message: '已退出房间', data: res };
+  }
+
   /**
    * 生成房间小程序码
    * 用于分享房间，扫描后可直接跳转到小程序并自动加入房间

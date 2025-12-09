@@ -22,6 +22,11 @@ class RoomDAO {
       .where('room_members.user_id', userId)
       .select('rooms.*', 'room_members.id as member_id');
   }
+
+  deleteById(roomId, trx = null) {
+    const query = knexClient(ROOM_TABLE).where({ id: roomId }).del();
+    return trx ? query.transacting(trx) : query;
+  }
 }
 
 export default new RoomDAO();

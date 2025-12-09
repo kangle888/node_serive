@@ -36,7 +36,8 @@ export default {
     publicBase: process.env.UPLOAD_PUBLIC_BASE || '' // 如 https://your.domain
   },
   log: {
-    level: process.env.LOG_LEVEL || 'info'
+    level: process.env.LOG_LEVEL || 'info',
+    dir: process.env.LOG_DIR || path.join(projectRoot, 'logs')
   },
   wechat: {
     appid: process.env.WECHAT_APPID || 'wx4adbe79a0790e1c6',

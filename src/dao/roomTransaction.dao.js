@@ -14,6 +14,11 @@ class RoomTransactionDAO {
       .orderBy('created_at', 'desc')
       .limit(limit);
   }
+
+  deleteByRoom(roomId, trx = null) {
+    const query = knexClient(ROOM_TRANSACTION_TABLE).where({ room_id: roomId }).del();
+    return trx ? query.transacting(trx) : query;
+  }
 }
 
 export default new RoomTransactionDAO();

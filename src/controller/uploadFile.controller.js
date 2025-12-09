@@ -37,7 +37,10 @@ class UploadFileController {
   const filenameWithHash = `${filehash}${suffix}`;
   const filePath = join(uploadDir, filenameWithHash);
   const fileUrl = `/upload/${filenameWithHash}`; // 静态资源前缀
-  const origin = `${ctx.protocol}://${ctx.host}`;
+  const origin =
+    uploadConfig.publicBase && uploadConfig.publicBase.trim()
+      ? uploadConfig.publicBase.trim().replace(/\/$/, '')
+      : `${ctx.protocol}://${ctx.host}`;
   const fileUrlAbsolute = `${origin}${fileUrl}`;
   // 确保文件夹存在  
   
