@@ -41,7 +41,6 @@ const qrCodeSchema = Joi.object({
 });
 roomRouter.post(
   '/qrcode',
-  verifyAuth,
   validate(qrCodeSchema),
   RoomController.generateQRCode
 );
