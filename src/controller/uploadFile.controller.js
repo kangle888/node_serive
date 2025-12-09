@@ -23,9 +23,7 @@ class UploadFileController {
     let { base64, filename } = ctx.request.body
 
     // 截取文件base64
-    
     const file = decodeURIComponent(base64).replace(/data:image\/\w+;base64,/, "")
-    
     const fileBuffer = Buffer.from(file, "base64");
 
     // 根据文件内容获取hash（SparkMD5）
@@ -36,7 +34,11 @@ class UploadFileController {
     const suffix = filename.slice(filename.lastIndexOf(".")) 
   // 写入的文件路径
   const uploadDir = uploadConfig.baseDir;
-  const filePath = join(uploadDir, `${filehash}${suffix}`);
+  const filenameWithHash = `${filehash}${suffix}`;
+  const filePath = join(uploadDir, filenameWithHash);
+  const fileUrl = `/upload/${filenameWithHash}`; // 静态资源前缀
+  const origin = `${ctx.protocol}://${ctx.host}`;
+  const fileUrlAbsolute = `${origin}${fileUrl}`;
   // 确保文件夹存在  
   
   try {
@@ -49,7 +51,9 @@ class UploadFileController {
         code: 200,
         message: '文件已存在',
         data: {
-          filePath
+          filePath,
+          fileUrl,
+          fileUrlAbsolute
         }
       };
     }else{
@@ -58,7 +62,9 @@ class UploadFileController {
         code: 200,
         message: '文件上传成功',
         data: {
-          filePath
+          filePath,
+          fileUrl,
+          fileUrlAbsolute
         }
       };
     }

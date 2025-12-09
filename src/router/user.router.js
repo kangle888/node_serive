@@ -3,6 +3,7 @@ import Joi from 'joi';
 import userController from '../controller/user.controller.js';
 import { verifyUser, handlePassword } from '../middleware/user.middleware.js';
 import { validate } from '../utils/validator.js';
+import { verifyAuth } from '../middleware/login.middleware.js';
 
 // 创建一个路由实例
 export const userRouter = new Router({ prefix: '/user' });
@@ -35,10 +36,31 @@ const registerSchema = Joi.object({
  *       200:
  *         description: 注册成功
  */
-userRouter.post('/', validate(registerSchema), verifyUser, handlePassword, userController.create);
+userRouter.post(
+  '/',
+  validate(registerSchema),
+  verifyUser,
+  handlePassword,
+  userController.create
+);
 
 // 根据用户id获取角色信息
 userRouter.get('/role', userController.getUserInfo);
 
 // 根据roleId获取用户菜单信息
 userRouter.get('/menu', userController.getUserMenu);
+
+// 头像可能是本地文件路径（非 URL），放宽校验
+const updateProfileSchema = Joi.object({
+  nickname: Joi.string().max(50).allow('', null),
+  avatar_url: Joi.string().max(512).allow('', null),
+  username: Joi.string().max(50).allow('', null),
+  phone: Joi.string().max(30).allow('', null)
+});
+
+userRouter.patch(
+  '/profile',
+  verifyAuth,
+  validate(updateProfileSchema),
+  userController.updateProfile
+);

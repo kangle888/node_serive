@@ -44,6 +44,23 @@ class UserController {
       data: res
     };
   }
+
+  // 更新用户昵称/头像等基础资料
+  async updateProfile(ctx) {
+    const userId = ctx.user?.id;
+    const { nickname, avatar_url, username, phone } = ctx.request.body || {};
+    const updated = await UserService.updateProfile(userId, {
+      nickname,
+      avatar_url,
+      username,
+      phone
+    });
+    ctx.body = {
+      code: 200,
+      message: '更新成功',
+      data: updated
+    };
+  }
 }
 
 export default new UserController();
