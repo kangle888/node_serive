@@ -60,3 +60,5 @@ roomRouter.post(
   validate(transferSchema),
   RoomController.transfer
 );
+roomRouter.delete('/:roomId', verifyAuth, RoomController.remove);
+roomRouter.delete('/:roomId/leave', verifyAuth, RoomController.leave);

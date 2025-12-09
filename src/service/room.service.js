@@ -99,6 +99,35 @@ class RoomService {
     return RoomDAO.listRoomsByUser(userId);
   }
 
+  async deleteRoom({ roomId, userId }) {
+    const room = await RoomDAO.findById(roomId);
+    if (!room) throw new Error('房间不存在');
+    if (room.creator_id !== userId) throw new Error('仅房主可删除房间');
+
+    await knexClient.transaction(async (trx) => {
+      await RoomTransactionDAO.deleteByRoom(roomId, trx);
+      await RoomMemberDAO.removeByRoom(roomId, trx);
+      await RoomDAO.deleteById(roomId, trx);
+    });
+
+    eventBus.emit('room:deleted', { roomId });
+    return { roomId };
+  }
+
+  async leaveRoom({ roomId, userId }) {
+    const member = await RoomMemberDAO.findByRoomAndUser(roomId, userId);
+    if (!member) throw new Error('您不在该房间');
+
+    const room = await RoomDAO.findById(roomId);
+    if (room && room.creator_id === userId) {
+      throw new Error('房主请先删除房间');
+    }
+
+    await RoomMemberDAO.removeByRoomAndUser(roomId, userId);
+    eventBus.emit('room:member_left', { roomId, userId });
+    return { roomId, userId };
+  }
+
   async recordTransfer({ roomId, fromMemberId, toMemberId, amount, remark }) {
     if (fromMemberId === toMemberId) {
       throw new Error('不能给自己转账');

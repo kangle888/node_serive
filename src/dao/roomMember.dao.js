@@ -31,6 +31,21 @@ class RoomMemberDAO {
     const query = knexClient(ROOM_MEMBER_TABLE).where({ id: memberId }).increment('balance', delta);
     return trx ? query.transacting(trx) : query;
   }
+
+  removeById(memberId, trx = null) {
+    const query = knexClient(ROOM_MEMBER_TABLE).where({ id: memberId }).del();
+    return trx ? query.transacting(trx) : query;
+  }
+
+  removeByRoom(roomId, trx = null) {
+    const query = knexClient(ROOM_MEMBER_TABLE).where({ room_id: roomId }).del();
+    return trx ? query.transacting(trx) : query;
+  }
+
+  removeByRoomAndUser(roomId, userId, trx = null) {
+    const query = knexClient(ROOM_MEMBER_TABLE).where({ room_id: roomId, user_id: userId }).del();
+    return trx ? query.transacting(trx) : query;
+  }
 }
 
 export default new RoomMemberDAO();
