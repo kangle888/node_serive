@@ -22,14 +22,14 @@ const __dirname = path.dirname(__filename);
 // 1. 创建 Koa 应用
 const app = new Koa();
 
-// 2. 安全相关中间件（关闭 CSP，避免影响 Swagger 外链和内联脚本）
+// 2. 安全配置（关闭 CSP）
 app.use(
   helmet({
     contentSecurityPolicy: false
   })
 );
 
-// 3. CORS 配置
+// 3. CORS（正确写法）⚠️ 不要再写手动 OPTIONS 拦截！
 app.use(
   cors({
     origin: '*',
@@ -46,19 +46,7 @@ app.use(async (ctx, next) => {
   logger.info(`${ctx.method} ${ctx.url} - ${ctx.status} - ${ms}ms`);
 });
 
-// 5. 预检请求处理
-app.use(async (ctx, next) => {
-  if (ctx.method === 'OPTIONS') {
-    ctx.set('Access-Control-Allow-Origin', '*');
-    ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-    ctx.status = 204;
-  } else {
-    await next();
-  }
-});
-
-// 6. 限流（基础配置，按 IP）
+// 5. 限流
 const rateLimitDb = new Map();
 app.use(
   ratelimit({
@@ -72,17 +60,17 @@ app.use(
   })
 );
 
-// 7. 解析请求体
+// 6. 解析 body（JSON / form）
 app.use(
   bodyParser({
     enableTypes: ['json', 'form', 'text']
   })
 );
 
-// 8. 静态资源（上传文件访问）
+// 7. 静态资源（上传文件）
 app.use(serve(path.join(__dirname, '../public')));
 
-// 9. Swagger 文档路由（swagger.json + /docs）
+// 8. Swagger 文档
 const swaggerRouter = new Router();
 swaggerRouter.get('/swagger.json', (ctx) => {
   ctx.body = swaggerSpecs;
@@ -96,7 +84,7 @@ app.use(
   })
 );
 
-// 10. 业务路由注册（核心模块）
+// 9. 注册业务路由（顺序必须在最后）
 app.use(userRouter.routes()).use(userRouter.allowedMethods());
 app.use(loginRouter.routes()).use(loginRouter.allowedMethods());
 app.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
