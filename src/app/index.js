@@ -84,11 +84,17 @@ app.use(
   })
 );
 
-// 9. 注册业务路由（顺序必须在最后）
-app.use(userRouter.routes()).use(userRouter.allowedMethods());
-app.use(loginRouter.routes()).use(loginRouter.allowedMethods());
-app.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
-app.use(healthRecordRouter.routes()).use(healthRecordRouter.allowedMethods());
-app.use(roomRouter.routes()).use(roomRouter.allowedMethods());
+// 9. 创建 API 主路由，统一添加 /api 前缀
+const apiRouter = new Router({ prefix: '/api' });
+
+// 将所有业务路由挂载到 /api 下
+apiRouter.use(userRouter.routes()).use(userRouter.allowedMethods());
+apiRouter.use(loginRouter.routes()).use(loginRouter.allowedMethods());
+apiRouter.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
+apiRouter.use(healthRecordRouter.routes()).use(healthRecordRouter.allowedMethods());
+apiRouter.use(roomRouter.routes()).use(roomRouter.allowedMethods());
+
+// 注册 API 路由（顺序必须在最后）
+app.use(apiRouter.routes()).use(apiRouter.allowedMethods());
 
 export default app;
