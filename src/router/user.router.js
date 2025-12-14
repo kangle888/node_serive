@@ -58,9 +58,25 @@ const updateProfileSchema = Joi.object({
   phone: Joi.string().max(30).allow('', null)
 });
 
-userRouter.patch(
+// 条件验证中间件：multipart 请求跳过验证，JSON 请求进行验证
+const conditionalValidate = (schema) => {
+  return async (ctx, next) => {
+    const isMultipart = ctx.headers['content-type']?.includes(
+      'multipart/form-data'
+    );
+    if (isMultipart) {
+      // multipart 请求跳过验证，由 controller 处理
+      await next();
+    } else {
+      // JSON 请求进行验证
+      return validate(schema)(ctx, next);
+    }
+  };
+};
+
+userRouter.post(
   '/profile',
   verifyAuth,
-  validate(updateProfileSchema),
+  conditionalValidate(updateProfileSchema),
   userController.updateProfile
 );

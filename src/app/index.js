@@ -60,12 +60,26 @@ app.use(
   })
 );
 
-// 6. 解析 body（JSON / form）
-app.use(
-  bodyParser({
-    enableTypes: ['json', 'form', 'text']
-  })
-);
+// 6. 解析 body（JSON / form），排除文件上传请求
+app.use(async (ctx, next) => {
+  // 如果是文件上传接口或 multipart 请求，跳过 bodyParser
+  const isMultipart = ctx.headers['content-type']?.includes(
+    'multipart/form-data'
+  );
+  if (
+    ctx.path === '/api/upload/file' ||
+    ctx.path.startsWith('/api/upload/chunk') ||
+    (ctx.path === '/api/user/profile' && isMultipart) ||
+    isMultipart
+  ) {
+    await next();
+  } else {
+    // 其他请求使用 bodyParser
+    return bodyParser({
+      enableTypes: ['json', 'form', 'text']
+    })(ctx, next);
+  }
+});
 
 // 7. 静态资源（上传文件）
 app.use(serve(path.join(__dirname, '../public')));
@@ -91,7 +105,9 @@ const apiRouter = new Router({ prefix: '/api' });
 apiRouter.use(userRouter.routes()).use(userRouter.allowedMethods());
 apiRouter.use(loginRouter.routes()).use(loginRouter.allowedMethods());
 apiRouter.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
-apiRouter.use(healthRecordRouter.routes()).use(healthRecordRouter.allowedMethods());
+apiRouter
+  .use(healthRecordRouter.routes())
+  .use(healthRecordRouter.allowedMethods());
 apiRouter.use(roomRouter.routes()).use(roomRouter.allowedMethods());
 
 // 注册 API 路由（顺序必须在最后）
