@@ -33,7 +33,7 @@ export default {
     baseDir: process.env.UPLOAD_BASE_DIR || path.join(publicDir, 'upload'),
     chunkDir: process.env.UPLOAD_CHUNK_DIR || path.join(publicDir, 'uploadBigFile'),
     tempDir: process.env.UPLOAD_TEMP_DIR || path.join(projectRoot, 'tmp'),
-    publicBase: process.env.UPLOAD_PUBLIC_BASE || '' // 如 https://your.domain
+    publicBase: process.env.UPLOAD_PUBLIC_BASE || 'https://xklandlxy.art' // 如 https://your.domain
   },
   log: {
     level: process.env.LOG_LEVEL || 'info',
