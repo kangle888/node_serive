@@ -61,6 +61,7 @@ class UserController {
   // 更新用户昵称/头像等基础资料（支持文件上传）
   async updateProfile(ctx) {
     const userId = ctx.user?.id;
+    const openid = ctx.user?.openid;
     const contentType = ctx.headers['content-type'] || '';
     
     // 判断是否是文件上传请求
@@ -124,7 +125,8 @@ class UserController {
           const res = await uploadFileService.saveFileInfoToDatabase(
             filehash,
             originalFilename,
-            filePath
+            filePath,
+            openid
           );
           
           if (res === '文件已存在') {

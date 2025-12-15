@@ -8,7 +8,6 @@ import Router from '@koa/router';
 import { koaSwagger } from 'koa2-swagger-ui';
 import { userRouter } from '../router/user.router.js';
 import { loginRouter } from '../router/login.router.js';
-import { uploadFileRouter } from '../router/uploadFile.router.js';
 import { roomRouter } from '../router/room.router.js';
 import { healthRecordRouter } from '../router/healthRecord.router.js';
 import { swaggerSpecs } from '../config/swagger.js';
@@ -104,7 +103,6 @@ const apiRouter = new Router({ prefix: '/api' });
 // 将所有业务路由挂载到 /api 下
 apiRouter.use(userRouter.routes()).use(userRouter.allowedMethods());
 apiRouter.use(loginRouter.routes()).use(loginRouter.allowedMethods());
-apiRouter.use(uploadFileRouter.routes()).use(uploadFileRouter.allowedMethods());
 apiRouter
   .use(healthRecordRouter.routes())
   .use(healthRecordRouter.allowedMethods());

@@ -1,13 +1,14 @@
 import knexClient from '../database/knexClient.js';
 
 const USER_TABLE = 'user';
+const UPLOADED_IMAGES_TABLE = 'uploaded_images_files';
 
 class UserDAO {
-  create(user) {
+  create (user) {
     return knexClient(USER_TABLE).insert({ name: user.username, password: user.password });
   }
 
-  findByName(username) {
+  findByName (username) {
     return knexClient(USER_TABLE).where({ name: username }).first();
   }
 
@@ -15,7 +16,7 @@ class UserDAO {
    * 根据 openid 查找用户
    * @param {string} openid - 微信 openid
    */
-  findByOpenid(openid) {
+  findByOpenid (openid) {
     return knexClient(USER_TABLE).where({ openid }).first();
   }
 
@@ -27,7 +28,7 @@ class UserDAO {
    * @param {string} userData.nickname - 昵称（可选）
    * @param {string} userData.avatar_url - 头像URL（可选）
    */
-  createWechatUser(userData) {
+  createWechatUser (userData) {
     return knexClient(USER_TABLE).insert({
       openid: userData.openid,
       unionid: userData.unionid || null,
@@ -42,11 +43,12 @@ class UserDAO {
    * @param {number} userId - 用户ID
    * @param {Object} userData - 要更新的用户数据
    */
-  updateWechatUser(userId, userData) {
+  updateWechatUser (userId, userData) {
     const updateData = {};
     if (userData.unionid !== undefined) updateData.unionid = userData.unionid;
     if (userData.nickname !== undefined) updateData.nickname = userData.nickname;
     if (userData.avatar_url !== undefined) updateData.avatar_url = userData.avatar_url;
+    // 仅更新存在的列；如果库无 name/username，则跳过
     if (userData.name !== undefined) updateData.name = userData.name;
     if (userData.phone !== undefined) updateData.phone = userData.phone;
 
@@ -59,7 +61,7 @@ class UserDAO {
    * 根据用户ID获取用户基本信息
    * @param {number} userId - 用户ID
    */
-  findById(userId) {
+  findById (userId) {
     return knexClient(USER_TABLE).where({ id: userId }).first();
   }
 
@@ -67,12 +69,12 @@ class UserDAO {
    * 批量根据用户ID获取用户信息
    * @param {number[]} userIds - 用户ID数组
    */
-  findByIds(userIds) {
+  findByIds (userIds) {
     if (!userIds?.length) return Promise.resolve([]);
     return knexClient(USER_TABLE).whereIn('id', userIds);
   }
 
-  getUserInfo(userId) {
+  getUserInfo (userId) {
     return knexClient.raw(
       `
         SELECT 
@@ -95,7 +97,7 @@ class UserDAO {
     );
   }
 
-  getUserMenu(roleId) {
+  getUserMenu (roleId) {
     return knexClient.raw(
       `
         SELECT 

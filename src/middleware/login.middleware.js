@@ -51,7 +51,9 @@ export const verifyAuth = async (ctx, next) => {
     ctx.user = result;
     await next();
   } catch (err) {
+    console.log('没有token，验证失败');
     const error = new Error(UNAUTHORIZATION);
+    console.error('token校验失败原因：', err.name, err.message);
     ctx.app.emit('error', error, ctx);
   }
 };

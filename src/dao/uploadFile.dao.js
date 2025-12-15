@@ -7,11 +7,18 @@ class UploadFileDAO {
     return knexClient(TABLE).where({ filehash }).first();
   }
 
+  findByOpenid(openid) {
+    return knexClient(TABLE).where({ openid }).first();
+  }
+
   create(data) {
-    return knexClient(TABLE).insert(data);
+    return knexClient(TABLE).insert({
+      filehash: data.filehash,
+      filename: data.filename,
+      filepath: data.filepath,
+      openid: data.openid || null
+    });
   }
 }
 
 export default new UploadFileDAO();
-
-
