@@ -1,11 +1,11 @@
 import UserDAO from '../dao/user.dao.js';
 
 class UserService {
-  async create(user) {
+  async create (user) {
     return UserDAO.create(user);
   }
 
-  async getUserByName(username) {
+  async getUserByName (username) {
     return UserDAO.findByName(username);
   }
 
@@ -17,12 +17,12 @@ class UserService {
    * @param {string} userInfo.nickname - 昵称
    * @param {string} userInfo.avatar_url - 头像URL
    */
-  async findOrCreateWechatUser(openid, userInfo = {}) {
+  async findOrCreateWechatUser (openid, userInfo = {}) {
     // 先查找用户
     let user = await UserDAO.findByOpenid(openid);
-    
+
     if (!user) {
-      // 用户不存在，创建新用户
+      // 用户不存在，创建新用户（初始头像/昵称来自微信）
       const [insertId] = await UserDAO.createWechatUser({
         openid,
         unionid: userInfo.unionid,
@@ -31,18 +31,24 @@ class UserService {
       });
       user = await UserDAO.findById(insertId);
     } else {
-      // 用户存在，更新用户信息（如果有新信息）
-      if (userInfo.nickname || userInfo.avatar_url || userInfo.unionid) {
+      // 用户存在，优先使用数据库中已保存的头像/昵称
+      // 如果没有本地头像，再用本次微信信息更新
+      const needUpdateAvatar = !user.avatar_url && userInfo.avatar_url;
+      const needUpdateNickname = !user.nickname && userInfo.nickname;
+      const needUpdateUnionId = !user.unionid && userInfo.unionid;
+
+      if (needUpdateAvatar || needUpdateNickname || needUpdateUnionId) {
         await UserDAO.updateWechatUser(user.id, {
-          nickname: userInfo.nickname,
-          avatar_url: userInfo.avatar_url,
-          unionid: userInfo.unionid
+          nickname: needUpdateNickname ? userInfo.nickname : undefined,
+          avatar_url: needUpdateAvatar ? userInfo.avatar_url : undefined,
+          unionid: needUpdateUnionId ? userInfo.unionid : undefined
         });
-        // 重新获取用户信息
-        user = await UserDAO.findById(user.id);
       }
+
+      // 重新获取用户信息
+      user = await UserDAO.findById(user.id);
     }
-    
+
     return user;
   }
 
@@ -50,26 +56,25 @@ class UserService {
    * 根据用户ID获取用户信息
    * @param {number} userId - 用户ID
    */
-  async getUserById(userId) {
+  async getUserById (userId) {
     return UserDAO.findById(userId);
   }
 
   // 根据用户id获取用户信息
-  async getUserInfo(userId) {
+  async getUserInfo (userId) {
     const [rows] = await UserDAO.getUserInfo(userId);
     return rows;
   }
   // 根据roleId获取用户菜单信息
-  async getUserMenu(roleId) {
+  async getUserMenu (roleId) {
     const [rows] = await UserDAO.getUserMenu(roleId);
     return buildTree(rows);
   }
 
-  async updateProfile(userId, payload) {
+  async updateProfile (userId, payload) {
     await UserDAO.updateWechatUser(userId, {
       nickname: payload.nickname,
       avatar_url: payload.avatar_url,
-      name: payload.username,
       phone: payload.phone
     });
     return UserDAO.findById(userId);
@@ -78,19 +83,18 @@ class UserService {
 
 export default new UserService();
 
-
 // 将数据转换为树状结构
-function buildTree(data) {
+function buildTree (data) {
   const map = new Map();
   const roots = [];
 
   // 先将所有节点存储到 Map 中，以 ID 为键，确保每个节点都有 children 数组
-  data.forEach(item => {
+  data.forEach((item) => {
     map.set(item.id, { ...item, children: [] });
   });
 
   // 然后遍历数据，根据 parent_id 构建父子关系
-  data.forEach(item => {
+  data.forEach((item) => {
     const node = map.get(item.id);
     if (item.parent_id === null) {
       // 没有 parent_id 的节点是根节点，直接添加到 roots 数组中
@@ -106,4 +110,3 @@ function buildTree(data) {
 
   return roots;
 }
-
